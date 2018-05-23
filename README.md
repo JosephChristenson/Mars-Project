@@ -1,2 +1,2 @@
-![molaout}(./MolaInput.png)
+![molain](./MolaInput.png)
 ![molaout](./MolaOut.png)
