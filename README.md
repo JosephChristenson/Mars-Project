@@ -1,9 +1,13 @@
 ![molain](./MolaInput.png)
 
-	This is the closest image I could find of that section of the map. For some reason it is much darker and much cleaner
-not to mention that it has more details.
+	This is an image of the entire map that I was given. You can see the section
+	of the map that we used in our output on the middle right side. It is hard
+	to see since there isn't much change in color for any of the chasms or craters. 
 
 ![molaout](./MolaOut.png)
 
-	This is the output image that we have. As you can see where the EGM image had the elevation change at a certain level
-a black contour line was added. It is hard to see becase of how faint it is and the shadows that were in the image to begin with.
+	This is the output that we got from the program when we set the coordinates
+for that chasm. as you can see the lines show the change in elevation, although
+when i reviewed his example it had much more lines and lines that were far thicker
+and thus more visible than the ones we used. That may have been an aesthetic change 
+that he made to make it easily seen.
