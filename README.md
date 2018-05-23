@@ -1,1 +1,1 @@
-![molaout](./MolaOut.pgm)
+![molaout](./MolaOut.png)
