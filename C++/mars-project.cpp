@@ -39,9 +39,9 @@ PGM read_pgm_file(string filename);
 
 void write_pgm_file(struct PGM &pgm, string filename, string type);
 
-void add_contour_lines(EGM &egm, PGM &pgm);
-
 PGM extract_sub_array(PGM &pgm, float top, float left, float bottom, float right);
+
+void add_contour_lines(EGM &egm, PGM &pgm);
 
 void get_mars_location(string egm_file, string pgm_file, string output_file,
                        float top, float left, float bottom, float right);
@@ -201,8 +201,6 @@ void write_pgm_file(PGM &pgm, string filename, string type) {
             bytes[i] = (char) pgm.data[i];
         fn.write(reinterpret_cast<char *>(bytes), pgm.width * pgm.height);
         delete bytes;
-        //for (int i = 0; i < pgm.width * pgm.height; i++)
-        //    fn.write(reinterpret_cast<char *>(bytes[i*sizeof(short int)]), 1);
     } else if (pgm.type == "P5" & pgm.max_value >= 256) {
         fn.write(reinterpret_cast<char *> (pgm.data),
                  int(pgm.width * pgm.height * sizeof(short)));
