@@ -1,3 +1,2 @@
 ![molain}(./MolaIn.png)
-This is the Input image of the section that we used in the program that resulted in this Output...
 ![molaout](./MolaOut.png)
