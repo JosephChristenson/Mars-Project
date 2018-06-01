@@ -3,7 +3,6 @@
 #include <fstream>
 #include <string>
 #include <cmath>
-
 #define PI 3.14159265
 
 using namespace std;
@@ -55,13 +54,10 @@ int main(void) {
 
     cout << "What is the top left corner coordinates (x,y) and the bottom right corner coordinate"<< endl;
     cin >> left >> top >> right >> bottom;
-
-    // todo after done debugging change this to a selection Q/A
     get_mars_location("mola_016_globe.egm",
                       "mola_016_globe_illum_input.pgm",
                       "mola_016_globe_illum_output.pgm",
-                      top, left, bottom, right); // todo change these coordinates
-    // todo add other cases here
+                      top, left, bottom, right);
     return 0;
 }
 
