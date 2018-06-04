@@ -22,6 +22,47 @@ public:
     int x_scale;
     int y_scale;
     unsigned short int *data;
+    
+    EGM::EGM()
+    {
+    }
+    
+    EGM::~EGM()
+    {
+        // destructor
+    }
+    
+    void EGM::read_file(string filename){
+        ifstream fn(filename, ios::binary);
+        int header_info[8];
+        char *typ = (char *) header_info;
+
+        fn.read(reinterpret_cast<char *>(header_info), 32);
+
+        this->width = header_info[2];
+        this->height = header_info[3];
+        this->min_val = header_info[4];
+        this->max_value = header_info[5];
+        this->x_scale = header_info[6];
+        this->y_scale = header_info[7];
+        if (*typ != 'E' || *(typ +1) != '4') {
+            cout << "There is a problem with the EGM image: "
+                 << filename << endl;
+            cout << *typ << " " << *(typ +1);
+            exit(EXIT_FAILURE);
+        }
+
+        this->data = new unsigned short int[this->width * this->height];
+        fn.read(reinterpret_cast<char *>(this->data),
+                this->width * this->height * sizeof(short int));
+
+        // bin the data to eight different elevations
+        float bin = this->max_value - this->min_val / 8;
+        for (int i = 0; i < this->width * this->height; i++)
+            this->data[i] = ((this->data[i]) - this->min_val) / bin;
+
+        fn.close();
+    }
 };
 
 class PGM {
@@ -43,7 +84,47 @@ public:
     }
 
     void PGM::write_file(string filename){
+        if (type != "")
+            this->type = type;
 
+        if (this->type == "P2" || this->type == "P5") {
+            filename = filename.substr(0, filename.length() - 3) + "pgm";
+        } else if (this->type == "P6" || this->type == "P3") {
+            filename = filename.substr(0, filename.length() - 3) + "pnp";
+        } else {
+            cout << "There is a problem with the PGM type: " << this->type << endl;
+            exit(EXIT_FAILURE);
+        }
+
+        ofstream fn(filename);
+        fn << this->type << " " << this->width << " " << this->height << " " << this->max_value << endl;
+        if (this->type == "P2") {
+            for (int i = 0; i < this->width * this->height; i++)
+                fn << this->data[i] << endl;
+        } else if (this->type == "P3") {
+            for (int i = 0; i < this->width * this->height; i++) {
+                unsigned char red = this->color[i].red;
+                unsigned char green = this->color[i].green;
+                unsigned char blue = this->color[i].blue;
+                fn << (int) red << " " << (int) green << " " << (int) blue << endl;
+            }
+        } else if (this->type == "P5" && this->max_value < 256) {
+            unsigned char* bytes = new unsigned char [int(this->width * this->height)];
+            for (int i = 0; i < this->width * this->height; i++)
+                bytes[i] = (char) this->data[i];
+            fn.write(reinterpret_cast<char *>(bytes), this->width * this->height);
+            delete bytes;
+        } else if (this->type == "P5" && this->max_value >= 256) {
+            fn.write(reinterpret_cast<char *> (this->data),
+                     int(this->width * this->height * sizeof(short)));
+        } else if (this->type == "P6") {
+            fn.write(reinterpret_cast<char *> (this->color),
+                     int(this->width * this->height * sizeof(COLOR)));
+        } else {
+            cout << "There is a problem with the PGM type: " << this->type << endl;
+            exit(EXIT_FAILURE);
+        }
+        fn.close();
     }
 
     void PGM::read_file(string filename) {
@@ -98,9 +179,6 @@ public:
     }
 };
 
-EGM read_egm_file(string filename);
-
-void write_pgm_file(struct PGM &pgm, string filename, string type);
 
 PGM extract_sub_array(PGM &pgm, float top, float left, float bottom, float right);
 
@@ -127,99 +205,21 @@ int main() {
 
 void get_mars_location(string egm_file, string pgm_file, string output_file,
                        float top, float left, float bottom, float right) {
-    EGM egm = read_egm_file(egm_file);
+    EGM egm = EGM();
+    egm.read_file(egm_file);
     PGM pgm = PGM();
     pgm.read_file(pgm_file);
 
     add_elevation_color(egm, pgm);
     add_contour_lines(egm, pgm);
     PGM out = extract_sub_array(pgm, top, left, bottom, right);
-    write_pgm_file(out, output_file, "P3");
+    pgm.write_file(output_file);
 
     delete[] egm.data;
     delete[] pgm.data;
     delete[] out.data;
     delete[] out.color;
     delete[] pgm.color;
-}
-
-EGM read_egm_file(string filename) {
-    EGM egm;
-    ifstream fn(filename, ios::binary);
-    int header_info[8];
-    char *typ = (char *) header_info;
-
-    fn.read(reinterpret_cast<char *>(header_info), 32);
-
-    egm.width = header_info[2];
-    egm.height = header_info[3];
-    egm.min_val = header_info[4];
-    egm.max_value = header_info[5];
-    egm.x_scale = header_info[6];
-    egm.y_scale = header_info[7];
-    if (*typ != 'E' || *(typ +1) != '4') {
-        cout << "There is a problem with the EGM image: "
-             << filename << endl;
-        cout << *typ << " " << *(typ +1);
-        exit(EXIT_FAILURE);
-    }
-
-    egm.data = new unsigned short int[egm.width * egm.height];
-    fn.read(reinterpret_cast<char *>(egm.data),
-            egm.width * egm.height * sizeof(short int));
-
-    // bin the data to eight different elevations
-    float bin = egm.max_value - egm.min_val / 8;
-    for (int i = 0; i < egm.width * egm.height; i++)
-        egm.data[i] = ((egm.data[i]) - egm.min_val) / bin;
-
-    fn.close();
-
-    return egm;
-}
-
-void write_pgm_file(PGM &pgm, string filename, string type) {
-    if (type != "")
-        pgm.type = type;
-
-    if (pgm.type == "P2" || pgm.type == "P5") {
-        filename = filename.substr(0, filename.length() - 3) + "pgm";
-    } else if (pgm.type == "P6" || pgm.type == "P3") {
-        filename = filename.substr(0, filename.length() - 3) + "pnp";
-    } else {
-        cout << "There is a problem with the PGM type: " << pgm.type << endl;
-        exit(EXIT_FAILURE);
-    }
-
-    ofstream fn(filename);
-    fn << pgm.type << " " << pgm.width << " " << pgm.height << " " << pgm.max_value << endl;
-    if (pgm.type == "P2") {
-        for (int i = 0; i < pgm.width * pgm.height; i++)
-            fn << pgm.data[i] << endl;
-    } else if (pgm.type == "P3") {
-        for (int i = 0; i < pgm.width * pgm.height; i++) {
-            unsigned char red = pgm.color[i].red;
-            unsigned char green = pgm.color[i].green;
-            unsigned char blue = pgm.color[i].blue;
-            fn << (int) red << " " << (int) green << " " << (int) blue << endl;
-        }
-    } else if (pgm.type == "P5" && pgm.max_value < 256) {
-        unsigned char* bytes = new unsigned char [int(pgm.width * pgm.height)];
-        for (int i = 0; i < pgm.width * pgm.height; i++)
-            bytes[i] = (char) pgm.data[i];
-        fn.write(reinterpret_cast<char *>(bytes), pgm.width * pgm.height);
-        delete bytes;
-    } else if (pgm.type == "P5" & pgm.max_value >= 256) {
-        fn.write(reinterpret_cast<char *> (pgm.data),
-                 int(pgm.width * pgm.height * sizeof(short)));
-    } else if (pgm.type == "P6") {
-        fn.write(reinterpret_cast<char *> (pgm.color),
-                 int(pgm.width * pgm.height * sizeof(COLOR)));
-    } else {
-        cout << "There is a problem with the PGM type: " << pgm.type << endl;
-        exit(EXIT_FAILURE);
-    }
-    fn.close();
 }
 
 bool is_higher_than_a_neighbor(EGM &egm, int col, int row) {
