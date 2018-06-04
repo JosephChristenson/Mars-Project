@@ -57,9 +57,9 @@ public:
                 this->width * this->height * sizeof(short int));
 
         // bin the data to eight different elevations
-        float bin = this->max_value - this->min_val / 8;
+        float bin = float (this->max_value - this->min_val / 8);
         for (int i = 0; i < this->width * this->height; i++)
-            this->data[i] = ((this->data[i]) - this->min_val) / bin;
+            this->data[i] = unsigned short(((this->data[i]) - this->min_val) / bin);
 
         fn.close();
     }
@@ -126,6 +126,35 @@ public:
         }
         fn.close();
     }
+    
+    void PGM::Sub_Array(float top, float left, float bottom, float right){
+        float latitude_scaling;
+        if (top - bottom > 90)
+            latitude_scaling = (float) cos((top - bottom) / 2 * PI / 180.0);
+        else
+            latitude_scaling = (float) cos((top + bottom) / 2 * PI / 180.0);
+        int top_index = int((90 - top) / 180 * this->height);
+        int bottom_index = int((90 - bottom) / 180 * this->height);
+        int left_index = int(left * latitude_scaling / 360 * this->width);
+        int right_index = int(right * latitude_scaling / 360 * this->width);
+
+        PGM ret;
+        ret.width = float (right_index - left_index);
+        ret.height = float (bottom_index - top_index);
+        ret.max_value = this->max_value;
+        ret.type = this->type;
+
+        ret.data = new unsigned short int[int(ret.width * ret.height)];
+        ret.color = new COLOR[int(ret.width * ret.height)];
+        for (int col = 0; col < ret.width; col++) {
+            for (int row = 0; row < ret.height; row++) {
+                ret.data[(int) (col + row * ret.width)] =
+                        this->data[(int) (col + left_index + ((row + top_index) * this->width))];
+                ret.color[(int) (col + row * ret.width)] =
+                        this->color[(int) (col + left_index + ((row + top_index) * this->width))];
+            }
+        }        
+    }
 
     void PGM::read_file(string filename) {
         string word;
@@ -168,7 +197,7 @@ public:
             char tmp;
             for (int i = 0; i < this->width * this->height; i++) {
                 fn.read(&tmp, 1);
-                this->data[i] = (short int) tmp;
+                this->data[i] = (unsigned short int) tmp;
             }
         }
         else {
@@ -178,9 +207,6 @@ public:
         fn.close();
     }
 };
-
-
-PGM extract_sub_array(PGM &pgm, float top, float left, float bottom, float right);
 
 void add_contour_lines(EGM &egm, PGM &pgm);
 
@@ -212,13 +238,13 @@ void get_mars_location(string egm_file, string pgm_file, string output_file,
 
     add_elevation_color(egm, pgm);
     add_contour_lines(egm, pgm);
-    PGM out = extract_sub_array(pgm, top, left, bottom, right);
+    pgm.Sub_Array(top, left, bottom, right);
     pgm.write_file(output_file);
 
     delete[] egm.data;
     delete[] pgm.data;
-    delete[] out.data;
-    delete[] out.color;
+    //delete[] out.data;
+    //delete[] out.color;
     delete[] pgm.color;
 }
 
@@ -267,35 +293,4 @@ void add_elevation_color(EGM &egm, PGM &pgm) {
         pgm.color[j].green = unsigned char(greens[egm.data[i]] * pgm.data[i]);
         pgm.color[j].blue = unsigned char(blues[egm.data[i]] * pgm.data[i]);
     }
-}
-
-PGM extract_sub_array(PGM &pgm, float top, float left, float bottom, float right) {
-    // convert degree lat / long into int index into PGM data
-    float latitude_scaling;
-    if (top - bottom > 90)
-        latitude_scaling = (float) cos((top - bottom) / 2 * PI / 180.0);
-    else
-        latitude_scaling = (float) cos((top + bottom) / 2 * PI / 180.0);
-    int top_index = int((90 - top) / 180 * pgm.height);
-    int bottom_index = int((90 - bottom) / 180 * pgm.height);
-    int left_index = int(left * latitude_scaling / 360 * pgm.width);
-    int right_index = int(right * latitude_scaling / 360 * pgm.width);
-
-    PGM ret;
-    ret.width = right_index - left_index;
-    ret.height = bottom_index - top_index;
-    ret.max_value = pgm.max_value;
-    ret.type = pgm.type;
-
-    ret.data = new unsigned short int[int(ret.width * ret.height)];
-    ret.color = new COLOR[int(ret.width * ret.height)];
-    for (int col = 0; col < ret.width; col++) {
-        for (int row = 0; row < ret.height; row++) {
-            ret.data[(int) (col + row * ret.width)] =
-                    pgm.data[(int) (col + left_index + ((row + top_index) * pgm.width))];
-            ret.color[(int) (col + row * ret.width)] =
-                    pgm.color[(int) (col + left_index + ((row + top_index) * pgm.width))];
-        }
-    }
-    return ret;
 }
