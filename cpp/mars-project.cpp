@@ -222,9 +222,9 @@ int main() {
 
     cout << "What is the top left corner coordinates (x,y) and the bottom right corner coordinate"<< endl;
     cin >> left >> top >> right >> bottom;
-    get_mars_location("mola_016_globe.egm",
-                      "mola_016_globe_illum_input.pgm",
-                      "mola_016_globe_illum_output.pgm",
+    get_mars_location("MolaInput.egm",
+                      "MolaInput.pgm",
+                      "MolaOut.pgm",
                       top, left, bottom, right);
     return 0;
 }
