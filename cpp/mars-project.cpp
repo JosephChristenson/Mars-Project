@@ -257,7 +257,7 @@ bool is_higher_than_a_neighbor(EGM &egm, int col, int row) {
         return true; // higher then right
     if (row != 0 && egm.data[col + (row - 1) * egm.width] < value)
         return true; // higher then top
-    if (row != egm.height - 1 && egm.data[col + (row + 1) * egm.width] < value)
+    if ((row != egm.height - 1) && egm.data[col + egm.width*(row + 1)] < value)
         return true; // higher then bottom
     return false;
 }
