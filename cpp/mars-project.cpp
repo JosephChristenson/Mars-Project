@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -7,13 +6,15 @@
 
 using namespace std;
 
-struct COLOR {
+class COLOR {
+public:
     unsigned char red;
     unsigned char green;
     unsigned char blue;
 };
 
-struct EGM {
+class EGM {
+public:
     int width;
     int height;
     int min_val;
@@ -23,18 +24,81 @@ struct EGM {
     unsigned short int *data;
 };
 
-struct PGM {
+class PGM {
+public:
     string type;
     float width;
     float height;
     float max_value;
     unsigned short int *data;
     COLOR *color;
+
+    PGM::PGM()
+    {
+    }
+
+    PGM::~PGM()
+    {
+        // destructor
+    }
+
+    void PGM::write_file(string filename){
+
+    }
+
+    void PGM::read_file(string filename) {
+        string word;
+        ifstream fn(filename);
+        if (!fn.good())
+        {
+            cout << "this file does not exist: " << filename << endl;
+            exit(EXIT_FAILURE);
+        }
+        fn >> this->type;
+        if (this->type != "P5" && this->type != "P2") {
+            cout << "There is a problem with the this type: "
+                 << this->type << endl;
+            exit(EXIT_FAILURE);
+
+        }
+
+        fn >> word;
+        this->width = (float) atof(word.c_str());
+
+        fn >> word;
+        this->height = (float) atof(word.c_str());
+
+        fn >> word;
+        this->max_value = (float) atof(word.c_str());
+
+        if (this->max_value < 0 || this->max_value > 65536) {
+            cout << "There is a problem with the this max value: "
+                 << this->max_value << endl;
+            exit(EXIT_FAILURE);
+        }
+        this->data = new unsigned short int[int(this->width * this->height)];
+        this->color = new COLOR[int(this->width * this->height)];
+
+        if (this->type == "P2") {
+            for (int i = 0; i < this->width * this->height; i++)
+                fn >> this->data[i];
+        }
+        else if (this->max_value < 256) {
+            char tmp;
+            for (int i = 0; i < this->width * this->height; i++) {
+                fn.read(&tmp, 1);
+                this->data[i] = (short int) tmp;
+            }
+        }
+        else {
+            fn.read(reinterpret_cast<char *>(this->data),
+                    int(this->width * this->height * sizeof(short int)));
+        }
+        fn.close();
+    }
 };
 
 EGM read_egm_file(string filename);
-
-PGM read_pgm_file(string filename);
 
 void write_pgm_file(struct PGM &pgm, string filename, string type);
 
@@ -49,7 +113,7 @@ bool is_higher_than_a_neighbor(EGM &egm, int col, int row);
 
 void add_elevation_color(EGM &egm, PGM &pgm);
 
-int main(void) {
+int main() {
     float top, bottom, left, right;
 
     cout << "What is the top left corner coordinates (x,y) and the bottom right corner coordinate"<< endl;
@@ -64,7 +128,8 @@ int main(void) {
 void get_mars_location(string egm_file, string pgm_file, string output_file,
                        float top, float left, float bottom, float right) {
     EGM egm = read_egm_file(egm_file);
-    PGM pgm = read_pgm_file(pgm_file);
+    PGM pgm = PGM();
+    pgm.read_file(pgm_file);
 
     add_elevation_color(egm, pgm);
     add_contour_lines(egm, pgm);
@@ -111,59 +176,6 @@ EGM read_egm_file(string filename) {
     fn.close();
 
     return egm;
-}
-
-PGM read_pgm_file(string filename) {
-    PGM pgm;
-    string word;
-    ifstream fn(filename);
-    if (!fn.good())
-    {
-        cout << "PGM file does not exist: " << filename << endl;
-        exit(EXIT_FAILURE);
-    }
-    fn >> pgm.type;
-    if (pgm.type != "P5" && pgm.type != "P2") {
-        cout << "There is a problem with the PGM type: "
-             << pgm.type << endl;
-        exit(EXIT_FAILURE);
-
-    }
-
-    fn >> word;
-    pgm.width = (float) atof(word.c_str());
-
-    fn >> word;
-    pgm.height = (float) atof(word.c_str());
-
-    fn >> word;
-    pgm.max_value = (float) atof(word.c_str());
-
-    if (pgm.max_value < 0 || pgm.max_value > 65536) {
-        cout << "There is a problem with the PGM max value: "
-             << pgm.max_value << endl;
-        exit(EXIT_FAILURE);
-    }
-    pgm.data = new unsigned short int[int(pgm.width * pgm.height)];
-    pgm.color = new COLOR[int(pgm.width * pgm.height)];
-
-    if (pgm.type == "P2") {
-        for (int i = 0; i < pgm.width * pgm.height; i++)
-            fn >> pgm.data[i];
-    }
-    else if (pgm.max_value < 256) {
-        char tmp;
-        for (int i = 0; i < pgm.width * pgm.height; i++) {
-            fn.read(&tmp, 1);
-            pgm.data[i] = (short int) tmp;
-        }
-    }
-    else {
-        fn.read(reinterpret_cast<char *>(pgm.data),
-                int(pgm.width * pgm.height * sizeof(short int)));
-    }
-    fn.close();
-    return pgm;
 }
 
 void write_pgm_file(PGM &pgm, string filename, string type) {
@@ -251,9 +263,9 @@ void add_elevation_color(EGM &egm, PGM &pgm) {
         int pgm_col = int(egm_col * (egm.width / pgm.width));
         int pgm_row = int(egm_row * (egm.height / pgm.height));
         int j = int(pgm_col + pgm_row * pgm.width);
-        pgm.color[j].red = char(reds[egm.data[i]] * pgm.data[i]);
-        pgm.color[j].green = char(greens[egm.data[i]] * pgm.data[i]);
-        pgm.color[j].blue = char(blues[egm.data[i]] * pgm.data[i]);
+        pgm.color[j].red = unsigned char(reds[egm.data[i]] * pgm.data[i]);
+        pgm.color[j].green = unsigned char(greens[egm.data[i]] * pgm.data[i]);
+        pgm.color[j].blue = unsigned char(blues[egm.data[i]] * pgm.data[i]);
     }
 }
 
