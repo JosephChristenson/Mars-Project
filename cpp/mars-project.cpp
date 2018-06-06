@@ -155,6 +155,7 @@ public:
 };
 
 class EGM {
+    PGM pgm = PGM();
 public:
     int width;
     int height;
@@ -174,7 +175,6 @@ public:
     }
 
     void add_color() {
-        PGM pgm = PGM();
         int reds[8] = {0, 0, 255, 100, 100, 255, 200, 200};
         int greens[8] = {200, 200, 255, 100, 100, 255, 50, 50};
         int blues[8] = {0, 0, 255, 10, 10, 255, 50, 50};
@@ -192,7 +192,6 @@ public:
     }
     
     void add_lines(){
-        PGM pgm = PGM();
         for (int i = 0; i < this->width * this->height; i++) {
             int egm_col = i % this->width;
             int egm_row = (i - egm_col) / this->width;
