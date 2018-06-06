@@ -31,7 +31,21 @@ public:
     {
         // destructor
     }
-    
+
+    bool higher_neighbor(int col, int row)
+    {
+        short int value = this->data[col + row * this->width];
+
+        if (col != 0 && this->data[col - 1 + row * this->width] < value)
+            return true; // higher then left
+        if (col != this->width - 1 && this->data[col + 1 + row * this->width] < value)
+            return true; // higher then right
+        if (row != 0 && this->data[col + (row - 1) * this->width] < value)
+            return true; // higher then top
+        if ((row != this->height - 1) && this->data[col + this->width*(row + 1)] < value)
+            return true; // higher then bottom
+        return false;
+    }
     void EGM::read_file(string filename){
         ifstream fn(filename, ios::binary);
         int header_info[8];
@@ -213,8 +227,6 @@ void add_contour_lines(EGM &egm, PGM &pgm);
 void get_mars_location(string egm_file, string pgm_file, string output_file,
                        float top, float left, float bottom, float right);
 
-bool is_higher_than_a_neighbor(EGM &egm, int col, int row);
-
 void add_elevation_color(EGM &egm, PGM &pgm);
 
 int main() {
@@ -248,25 +260,11 @@ void get_mars_location(string egm_file, string pgm_file, string output_file,
     delete[] pgm.color;
 }
 
-bool is_higher_than_a_neighbor(EGM &egm, int col, int row) {
-    short int value = egm.data[col + row * egm.width];
-
-    if (col != 0 && egm.data[col - 1 + row * egm.width] < value)
-        return true; // higher then left
-    if (col != egm.width - 1 && egm.data[col + 1 + row * egm.width] < value)
-        return true; // higher then right
-    if (row != 0 && egm.data[col + (row - 1) * egm.width] < value)
-        return true; // higher then top
-    if ((row != egm.height - 1) && egm.data[col + egm.width*(row + 1)] < value)
-        return true; // higher then bottom
-    return false;
-}
-
 void add_contour_lines(EGM &egm, PGM &pgm) {
     for (int i = 0; i < egm.width * egm.height; i++) {
         int egm_col = i % egm.width;
         int egm_row = (i - egm_col) / egm.width;
-        if (is_higher_than_a_neighbor(egm, egm_col, egm_row)) {
+        if (egm.higher_neighbor(egm_col, egm_row)) {
             int pgm_col = int(egm_col * (egm.width / pgm.width));
             int pgm_row = int(egm_row * (egm.height / pgm.height));
             int j = (int) (pgm_col + pgm_row * pgm.width);
