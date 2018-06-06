@@ -4,3 +4,4 @@
 	some lines were added to indicate a change of elevation.
 ![out](MolaOut.png)
 
+To download CLion use https://www.jetbrains.com/clion/download/#section=windows
