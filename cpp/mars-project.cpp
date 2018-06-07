@@ -9,8 +9,9 @@ void get_mars_location(string egm_file, string pgm_file, string output_file,
 int main() {
     float top, bottom, left, right;
 
-    cout << "What is the top left corner coordinates (x,y) and the bottom right corner coordinate"<< endl;
-    cin >> left >> top >> right >> bottom;
+    //cout << "What is the top left corner coordinates (x,y) and the bottom right corner coordinate"<< endl;
+    //cin >> left >> top >> right >> bottom;
+    left = 0; top = 0; right = 99; bottom = 99;
     get_mars_location("MolaInput.egm",
                       "MolaInput.pgm",
                       "MolaOut.pgm",
