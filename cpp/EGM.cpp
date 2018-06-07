@@ -92,5 +92,8 @@ void EGM::read_file(string filename){
     for (int i = 0; i < this->width * this->height; i++)
         this->data[i] = unsigned short(((this->data[i]) - this->min_val) / bin);
 
+    for(int i = 0; i < 8; i++)
+        cout << *(typ + i) << endl;
+
     fn.close();
 }

@@ -11,7 +11,7 @@ int main() {
 
     //cout << "What is the top left corner coordinates (x,y) and the bottom right corner coordinate"<< endl;
     //cin >> left >> top >> right >> bottom;
-    left = 0; top = 0; right = 99; bottom = 99;
+    left = 0; top = 0; right = 9; bottom = 9;
     get_mars_location("MolaInput.egm",
                       "MolaInput.pgm",
                       "MolaOut.pgm",
